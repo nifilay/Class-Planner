@@ -1,0 +1,116 @@
+﻿@page "/inStudents"
+@inject NavigationManager NavigationManager
+@using IBClassSorter.Data
+<h3>InputStudents</h3>
+
+
+<RadzenAlert AlertStyle="AlertStyle.Info" ShowIcon="false" Variant="Variant.Flat" Shade="Shade.Lighter" AllowClose="false" Visible=@isVisible>
+    <RadzenText>Please Wait: Calculating Possibilities (Will likely take a long time)</RadzenText>
+   
+</RadzenAlert>
+
+<RadzenNumeric TValue="int" @bind-Value="totalStudents"></RadzenNumeric>
+@for(int i=0;i<totalStudents;i++){
+    int currentIndex = i;
+    <RadzenRow class="rz-my-2">
+        <RadzenTextBox Placeholder="Enter Student Name" Change="@(args=> updateStudentList(args, currentIndex))"></RadzenTextBox>
+        <RadzenDropDown Change="@(args=> updateStudentList(args, currentIndex))" TextProperty="name" Data="@allCourses" Multiple="true" AllowSelectAll="false" TValue="CourseModel" Disabled="@checkStudentDisabled(currentIndex)"></RadzenDropDown>
+    </RadzenRow>
+}
+
+<RadzenButton Click="@enter">Enter</RadzenButton>
+
+
+
+
+@code {
+
+
+    public List<TeacherModel> allTeachers { get; set; }
+
+
+    public List<CourseModel> allCourses { get; set; }
+
+
+    public List<ClassModel> allClasses { get; set; }
+
+
+    public List<Data.ClassPreferences> classPref { get; set; }
+
+
+
+    //  public static EventConsole console = new EventConsole();
+
+    public int totalStudents;
+    public List<StudentModel> allStudents;
+
+
+    bool isVisible = false;
+
+    public bool checkStudentDisabled(int index){
+        return getStudentByIndex(index) == null;
+    }
+
+    public static bool isDoneComputing = false;
+
+    public void enter(){
+
+        //  console.Log("enter");
+        isVisible = true;
+
+        DataHolder.allStudents = allStudents;
+
+
+        NavigationManager.NavigateTo($"scheduleDisplay");
+    }
+
+    public void updateStudentList(object a, int currentIndex){
+        List<CourseModel> tempCourses = (List<CourseModel>)((IEnumerable<object>)a).Cast<CourseModel>().ToList();
+
+        allStudents[currentIndex].courses = tempCourses;
+    }
+
+
+
+
+    protected override void OnInitialized()
+    {
+        allTeachers = DataHolder.allTeachers;
+        allClasses = DataHolder.allClasses;
+        allCourses = DataHolder.allCourses;
+        classPref = DataHolder.allClassesPreferences;
+
+        allStudents = new List<StudentModel>();
+    }
+
+    public void updateStudentList(string s, int index){
+        StudentModel x = getStudentByIndex(index);
+        if (x == null)
+        {
+            allStudents.Add(new StudentModel
+                {
+                    id = index,
+                    name = s,
+                    courses=new List<CourseModel>()
+                });
+        }
+        else
+        {
+            x.name = s;
+        }
+       
+
+    }
+
+    public StudentModel getStudentByIndex(int index)
+    {
+        foreach (StudentModel x in allStudents)
+        {
+            if (x.id == index)
+            {
+                return x;
+            }
+        }
+        return null;
+    }
+}
